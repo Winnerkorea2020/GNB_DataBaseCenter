@@ -1,8 +1,31 @@
 "use strict";
 
+// document.addEventListener('DOMContentLoaded', function () {
 window.addEventListener('load', function () {
+    // document.addEventListener('DOMContentLoaded', function () {
 
-    //1. behavior when main menu is visible or hidden
+    //     var menuBehaviors = document.querySelectorAll('.menu-behavior');
+
+    //     [].forEach.call(document.querySelectorAll('.menu-toggler'), function (el) {
+    //         el.addEventListener('click', function (event) {
+    //             menuBehaviors.forEach(function (menuBehavior) {
+    //                 menuBehavior.classList.toggle('menu-visible');
+    //             });
+    //             event.preventDefault();
+    //         });
+    //     });
+
+    //     // close menu when a link is clicked fo example
+    //     [].forEach.call(document.querySelectorAll('.menu-close'), function (el) {
+    //         el.addEventListener('click', function (event) {
+    //             menuBehaviors.forEach(function (menuBehavior) {
+    //                 menuBehavior.classList.remove('menu-visible');
+    //             });
+    //         });
+    //     });
+    // });
+
+    // behavior when main menu is visible or hidden
     var menuCollapse = document.getElementById('navbarMenuCollapse');
     menuCollapse.addEventListener('shown.bs.collapse', function () {
         document.body.classList.add('menu-visible');
@@ -21,11 +44,21 @@ window.addEventListener('load', function () {
         });
     });
 
-    //2. toggle hide-header class of header on scoll down or up
+    /* document.addEventListener("scroll", function () {
+        // add scrolled class to body if document is scrolled
+        if (window.pageYOffset > 4 ) {
+            if (!document.body.classList.contains('scrolled')){
+                document.body.classList.add('scrolled');
+            }
+        } else{
+            document.body.classList.remove('scrolled');
+        }
+    }) */
     var prevScrollpos = window.pageYOffset;
     var pageHeader = document.querySelector('.navbar-top');
     window.addEventListener("scroll", function () {
         // window.onscroll = function() {
+        // toggle hide-header class of header on scoll down or up
         var currScrollpos = window.pageYOffset;
         if (currScrollpos > prevScrollpos && currScrollpos > 64) {
             if (!pageHeader.classList.contains('hide-header')) {
@@ -46,7 +79,8 @@ window.addEventListener('load', function () {
         }
     });
 
-    //3. custom vh (viewport height) unit to fix on resize or scroll on mobile
+
+    // custom vh (viewport height) unit to fix on resize or scroll on mobile
     let vh = window.innerHeight * 0.01;
     document.documentElement.style.setProperty('--vh', `${vh}px`);
     window.addEventListener("resize", function () {
@@ -54,9 +88,9 @@ window.addEventListener('load', function () {
         let vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
     })
-
-    //4. Swiper Slider
+    // Slider
     let swiperSliderSimpleA = new Swiper('.slider-simple-a.swiper-container', {
+        // var swiperSliderSimpleA = new Swiper('.swiper-container', {
         navigation: {
             nextEl: '.swiper-container.slider-simple-a .slider-next',
             prevEl: '.swiper-container.slider-simple-a .slider-prev',
@@ -117,19 +151,15 @@ window.addEventListener('load', function () {
         effect: 'fade',
     });
 
-    //5. Scroll slider
+    //6. Scroll slider
+    
     try {
         var scrollSlider = new ScrollSlider('.scroll-simple-a', {
             scale1: 0.1
         });
         scrollSlider.init();
-    }
-    catch (error) {
-        console.log('scroll-slider not available')
-    }
 
-    try {
-        // Section Scroller
+        //7. Section Scroller
         var sectionScroller = new SectionScroll('.sections-scroll ', {
             sectionClass: 'section',
             navDotContainer :'.nav-dot-menu',
@@ -138,35 +168,92 @@ window.addEventListener('load', function () {
         sectionScroller.init();
     }
     catch (error) {
-        console.log('sections-scroll not available')
+        console.log('scroll-slider not available')
     }
-    /* var sectionScroller = new SectionScroll('.sections-scroll ', {
-        sectionClass: 'section',
-        navDotContainer :'.nav-dot-menu',
-        changeOnSectionColor: '.change-on-section-color, .nav-dot-menu .nav-link'
-    });
-    sectionScroller.init(); */
 
-    //6. Rellax parallax
+    //8. Cursor parallax 
+    /* var parallaxCover = document.querySelector('#parallax-hero-cover')
+    if (parallaxCover) {
+        var parallaxInstance = new Parallax(parallaxCover);
+        // if (window.innerWidth > 768) {
+        //     var parallaxInstance = new Parallax(parallaxCover);
+        // }
+    } */
+    // Rellax parallax
     try {
         var rellax = new Rellax('.rellax');
     } catch (error) {
         console.log('rellax-js not available')
     }
 
-    //7. Scroll animation
-    try {
-        var scrollAnim = new ScrollAnim('.scroll-anim');
-        scrollAnim.init();
-
+    // add animation when element is visible on screen
+    if (!!window.IntersectionObserver) {
+        let observer;
+        let options = {
+            root: null,
+            // rootMargin: "0px",
+            rootMargin: "0px 0px -48px 0px",
+            // threshold: [0.2, 0.8]
+            // threshold: [0.25, 0.5, 1]
+            threshold: [0.15, 0.5, 1]
+        }
+        let observerFunction = function observerFunction (entries, observer) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // console.log(entry);
+                    entry.target.classList.add('anim-visible');
+                    observer.unobserve(entry.target);
+                }
+            })
+        }
+        observer = new IntersectionObserver(observerFunction, options);
+        document.querySelectorAll('.scroll-anim [data-anim-visible]').forEach(element => {
+            element.classList.add('anim-ready');
+            observer.observe(element);
+        });
     }
-    catch (error) {
-        console.log('scroll-anim not available')
-    }
 
-    
+    // text char by char animation
+    if (window.innerWidth > 768 && !!window.IntersectionObserver) {
+        let byCharElts = document.querySelectorAll('.anim-by-char, [data-anim-visible="by-letter"]');
+        byCharElts.forEach(byCharElt => {
+            // let lines = byCharElt.innerText.split('\n');
+            let animBegin = 0.0;
+            if (byCharElt.getAttribute('data-anim-start')) {
+                animBegin = parseFloat(byCharElt.getAttribute('data-anim-start'))
+            }
+            let animLetterParam = 0.02;
+            if (byCharElt.getAttribute('data-anim-letter-delay')) {
+                animLetterParam = parseFloat(byCharElt.getAttribute('data-anim-letter-delay'))
+            }
+            let animLineParam = 0.15;
+            if (byCharElt.getAttribute('data-anim-line-delay')) {
+                animLineParam = parseFloat(byCharElt.getAttribute('data-anim-line-delay'))
+            }
+            console.log(animLineParam)
+            let lines = byCharElt.childNodes;
+            lines.forEach((line, lineIndex) => {
+                if (line.tagName !== 'BR') {
+                    let lineNode = document.createElement('span');
+                    lineNode.classList.add('line');
+                    // let chars = line.split('');
+                    let letters = line.textContent.trim().replace(/(\r\n|\n|\r|\t)/g," ").replace(/  +/g," ").trim().split('');
+                    let beginLine = (lineIndex - 1) * animLineParam
+                    letters.forEach((letter, letterIndex) => {
+                        let letterNode = document.createElement('span');
+                        letterNode.classList.add('letter');
+                        letterNode.innerText = letter;
+                        let animDelay = (animBegin + beginLine - animLetterParam) + letterIndex*animLetterParam + 0.2;
+                        letterNode.style.transitionDelay = `${animDelay}s`
+                        lineNode.appendChild(letterNode)
+                    })
+                    line.replaceWith(lineNode)
+                }
+            })
+        })
+	}
 
-    //8. Custom Scroll parallax
+    // Custom Scroll parallax
     var parallaxElements = document.querySelectorAll('[data-prl]');
     parallaxElements.forEach(function (parallaxElement, index) {
         parallaxElement.style['will-change'] = `transform`
@@ -202,6 +289,7 @@ window.addEventListener('load', function () {
         let translateX = speedX ? `translateX(${distance * speedX * refWidth}px)` : ''
         let translateY = speedY ? `translateY(${distance * speedY * refHeight}px)` : ''
         let scale = scaleCoeff ? `scale(${scaleValue })` : ''
+        // let scale = ''
 
         element.style.transform = `${translateY} ${translateX}  ${scale}`
     }
@@ -212,6 +300,7 @@ window.addEventListener('load', function () {
         let bottomVisible = false
         let wh = window.innerHeight;
         let padding = wh / 3
+        // if (ltop < window.innerHeight && ltop > 0) {
         if (ltop < wh + padding && ltop + padding > 0) {
             // top is visible
             topVisible = true
@@ -223,12 +312,17 @@ window.addEventListener('load', function () {
         return topVisible || bottomVisible
     }
 
-    // 9. page loader
-    // document loaded, all script init executed, so hide loading screen
+});
+
+window.addEventListener('load', function () {
+    // document loaded, hide loading screen
     var pageLoader = document.querySelector('#page-loader');
     if (pageLoader) {
         pageLoader.classList.add('p-hidden');
     }
     document.body.classList.add('page-loaded');
-
+    // $('#page-loader').addClass('p-hidden');
+    // $('.section').addClass('anim');
+    // $('.scrollpage-container .section-home').addClass('active');
+    // siteHeaderFooter.removeClass('loading-anim');
 });
